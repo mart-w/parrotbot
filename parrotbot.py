@@ -105,7 +105,7 @@ class ParrotBot(discord.Client):
             if not match["author"] \
             or await self.is_same_user(message.author, match["author"]):
                 if re.search( \
-                    match["content"], \
+                    re.escape(match["content"]), \
                     message.content, \
                     flags=re.IGNORECASE \
                 ):
@@ -195,8 +195,9 @@ class ParrotBot(discord.Client):
     # Event listeners.
 
     async def on_ready(self):
-        """Print that the bot is ready."""
+        """Print that the bot is ready and list connected servers."""
         print("ParrotBot is ready.")
+        print("Connected Servers: %d\n" % (len(self.servers)))
 
     async def on_server_join(self, server):
         """Print number of connected servers when connecting to a new server."""
