@@ -20,7 +20,6 @@ import discord
 import asyncio
 import datetime
 import re
-import datetime
 
 class ParrotBot(discord.Client):
     """Extend discord.Client with an event listener and additional methods."""
