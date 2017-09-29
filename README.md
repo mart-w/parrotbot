@@ -10,11 +10,9 @@ just like many people do anyways. ParrotBot will automatically find the most
 recent occurrence of this quote, display the according message in a box, and
 delete the text-only quote you sent (if you allow it to):
 
-![Example quote]
-(https://github.com/mart-w/parrotbot/blob/master/doc_img/example_quote.png?raw=true)
+![Example quote](https://github.com/mart-w/parrotbot/blob/master/doc_img/example_quote.png?raw=true)
 
-![Example result]
-(https://github.com/mart-w/parrotbot/blob/master/doc_img/example_quote_result.png?raw=true)
+![Example result](https://github.com/mart-w/parrotbot/blob/master/doc_img/example_quote_result.png?raw=true)
 
 “But what if there are multiple similar messages from different users and it’s
 not the last one I want to quote,” I hear you ask? Well, in this case, you can
