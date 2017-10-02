@@ -270,7 +270,6 @@ except FileNotFoundError:
 
 # Check if the loaded configuration misses keys. If so, ask for user input or
 # assume a default value.
-
 if "discord-token" not in config:
     configfile_needs_update = True
     config["discord-token"] = input(
