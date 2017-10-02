@@ -19,26 +19,33 @@
 import discord
 import asyncio
 import datetime
+import json
 import re
 
 class ParrotBot(discord.Client):
     """Extend discord.Client with an event listener and additional methods."""
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, config, *args, **kwargs):
         """
         Extend class attributes of discord.Client.
 
-        Pass all arguments to discord.Client.__init__() and define new class
-        attributes.
+        Pass all arguments except for config to discord.Client.__init__() and
+        define new class attributes.
 
         Parameters
         ----------
+        configs : dict
+            Configuration object for the bot, created from the Configuration
+            file. Gets turned into a class attribute.
         *args
             Non-keyworded arguments passed to the class upon initialisation.
         **kwargs
             Keyworded arguments passed to the class upon initialisation.
         """
         super(ParrotBot, self).__init__(*args, **kwargs)
+
+        # Configuration object.
+        self.config = config
 
         # Regular expression object to recognise quotes.
         self.re_quote = re.compile(r"(?P<author>.*?)\s*>\s*(?P<content>.+)")
@@ -231,13 +238,34 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.\n""")
 
-# Read API token from token file.
-with open("token.txt", "r") as tokenfile:
-    api_token = tokenfile.readline().rstrip()
+config = {}
 
-# Initialise client object.
-client = ParrotBot()
+# Try to read configuration file.
+try:
+    with open("config.json", "r") as configfile:
+        config = json.load(configfile)
+except FileNotFoundError:
+    print("Configuration file not found!")
+
+# Check if the loaded configuration misses keys. If so, ask for user input or
+# assume a default value.
+configfile_needs_update = False
+
+if "discord-token" not in config:
+    configfile_needs_update = True
+    config["discord-token"] = input(
+        "API token not found. Please enter your API token: "
+    )
+
+# (Re)write configuration file if it didn't exist or missed keys.
+if configfile_needs_update:
+    with open("config.json", "w") as configfile:
+        json.dump(config, configfile)
+        print("Configuration file updated.")
+
+# Initialise client object with the loaded configuration.
+client = ParrotBot(config)
 
 # Start bot session.
-print("Start bot session with token %s" % (api_token))
-client.run(api_token)
+print("Start bot session with token %s" % (config["discord-token"]))
+client.run(config["discord-token"])
