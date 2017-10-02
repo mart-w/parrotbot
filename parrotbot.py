@@ -247,6 +247,21 @@ try:
 except FileNotFoundError:
     print("Configuration file not found!")
 
+# Check for token.txt for backwards compatibility. If found, get the token file
+# from it and use it for the new configuration, if that does not contain a token
+# yet.
+try:
+    with open("token.txt", "r") as tokenfile:
+        token_from_txt = tokenfile.readline().rstrip()
+        print(
+            "token.txt found. Usage of this file is deprecated; the token will "
+            "be written to the new config.json file."
+        )
+        if "discord-token" not in config:
+            config["discord-token"] = token_from_txt
+except FileNotFoundError:
+    pass
+
 # Check if the loaded configuration misses keys. If so, ask for user input or
 # assume a default value.
 configfile_needs_update = False
