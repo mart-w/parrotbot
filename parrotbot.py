@@ -238,7 +238,11 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.\n""")
 
+# Configuration object.
 config = {}
+
+# Will be set to True if config.json misses keys or does not exist yet.
+configfile_needs_update = False
 
 # Try to read configuration file.
 try:
@@ -246,6 +250,7 @@ try:
         config = json.load(configfile)
 except FileNotFoundError:
     print("Configuration file not found!")
+    configfile_needs_update = True
 
 # Check for token.txt for backwards compatibility. If found, get the token file
 # from it and use it for the new configuration, if that does not contain a token
@@ -259,12 +264,12 @@ try:
         )
         if "discord-token" not in config:
             config["discord-token"] = token_from_txt
+            configfile_needs_update = True
 except FileNotFoundError:
     pass
 
 # Check if the loaded configuration misses keys. If so, ask for user input or
 # assume a default value.
-configfile_needs_update = False
 
 if "discord-token" not in config:
     configfile_needs_update = True
