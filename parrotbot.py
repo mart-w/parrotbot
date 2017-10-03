@@ -21,7 +21,7 @@ import asyncio
 import datetime
 import json
 import re
-import urllib2
+import urllib.request
 
 class ParrotBot(discord.Client):
     """Extend discord.Client with an event listener and additional methods."""
@@ -81,7 +81,7 @@ class ParrotBot(discord.Client):
                 self.config["discordbots_org_token"]
             )
 
-            urllib2.urlopen(dbotsorg_req, count_json)
+            urlopen(dbotsorg_req, count_json)
 
         # bots.discord.pw
         if "bots_discord_pw_token" in self.config:
@@ -97,7 +97,7 @@ class ParrotBot(discord.Client):
                 self.config["bots_discord_pw_token"]
             )
 
-            urllib2.urlopen(botsdpw_req, count_json)
+            urlopen(botsdpw_req, count_json)
 
     async def is_same_user(self, user_obj, user_str):
         """
