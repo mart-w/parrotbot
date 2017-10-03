@@ -119,6 +119,9 @@ class ParrotBot(discord.Client):
         -------
         boolean
         """
+        # Escape user input
+        user_str = re.escape(user_str)
+
         user_obj_full_name = user_obj.name + '#' + user_obj.discriminator
 
         if user_obj.id.find(user_str) == 0 \
