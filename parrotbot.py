@@ -21,6 +21,7 @@ import asyncio
 import datetime
 import json
 import re
+import urllib2
 
 class ParrotBot(discord.Client):
     """Extend discord.Client with an event listener and additional methods."""
@@ -52,6 +53,51 @@ class ParrotBot(discord.Client):
 
         # How many messages are fetched at most by search_message_by_quote().
         self.log_fetch_limit = 100
+
+    async def post_server_count(self):
+        """
+        Post how many servers are connected to Discord bot list sites.
+
+        Create a JSON string containing how many servers are connected right
+        now and post it to discordbots.org and bots.discord.pw using the
+        respective tokens from the config file. If the token for a site is not
+        given, ignore that site.
+        """
+        count_json = json.dumps({
+            "server_count": len(self.servers)
+        })
+
+        # discordbots.org
+        if "discordbots_org_token" in self.config:
+            dbotsorg_req = urllib2.Request(
+                "https://discordbots.org/api/bots/%s/stats" % (self.user.id)
+            )
+            dbotsorg_req.add_header(
+                "Content-Type",
+                "application/json"
+            )
+            dbotsorg_req.add_header(
+                "Authorization",
+                self.config["discordbots_org_token"]
+            )
+
+            urllib2.urlopen(dbotsorg_req, count_json)
+
+        # bots.discord.pw
+        if "bots_discord_pw_token" in self.config:
+            botsdpw_req = urllib2.Request(
+                "https://bots.discord.pw/api/bots/%s/stats" % (self.user.id)
+            )
+            botsdpw_req.add_header(
+                "Content-Type",
+                "application/json"
+            )
+            botsdpw_req.add_header(
+                "Authorization",
+                self.config["bots_discord_pw_token"]
+            )
+
+            urllib2.urlopen(botsdpw_req, count_json)
 
     async def is_same_user(self, user_obj, user_str):
         """
@@ -270,10 +316,28 @@ except FileNotFoundError:
 
 # Check if the loaded configuration misses keys. If so, ask for user input or
 # assume a default value.
+
+# Discord API token.
 if "discord-token" not in config:
     configfile_needs_update = True
     config["discord-token"] = input(
-        "API token not found. Please enter your API token: "
+        "Discord API token not found. Please enter your API token: "
+    )
+
+# discordbots.org API token
+if "discordbots_org_token" not in config:
+    configfile_needs_update = True
+    config["discordbots_org_token"] = input(
+        "discordbots.org API token not found. Please enter your API token "
+        "(leave empty to ignore discordbots.org): "
+    )
+
+# bots.discord.pw API token
+if "bots_discord_pw_token" not in config:
+    configfile_needs_update = True
+    config["bots_discord_pw_token"] = input(
+        "bots.discord.pw API token not found. Please enter your API token "
+        "(leave empty to ignore bots.discord.pw): "
     )
 
 # (Re)write configuration file if it didn't exist or missed keys.

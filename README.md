@@ -27,10 +27,10 @@ can be adjusted to your needs, of course.
 ## Installation
 To run ParrotBot on your machine, you need Python 3.5 or higher and
 [discord.py](https://github.com/Rapptz/discord.py) v0.15.0 or higher.
-ParrotBot also uses the modules `asyncio`, `datetime`, `json` and `re`, but
-those should normally already be part of your Python installation. You also need
-a Discord bot user and its API token (see https://discordapp.com/developers for
-further information on that).
+ParrotBot also uses the modules `asyncio`, `datetime`, `json`, `re`, and
+`urllib2`, but those should normally already be part of your Python
+installation. You also need a Discord bot user and its API token
+(see https://discordapp.com/developers for further information on that).
 
 If you have all that, just clone this repository and create a file called
 `token.txt` in the repository’s root folder containing nothing but the API
