@@ -69,7 +69,7 @@ class ParrotBot(discord.Client):
 
         # discordbots.org
         if "discordbots_org_token" in self.config:
-            dbotsorg_req = urllib2.Request(
+            dbotsorg_req = urllib.request.Request(
                 "https://discordbots.org/api/bots/%s/stats" % (self.user.id)
             )
             dbotsorg_req.add_header(
@@ -81,11 +81,11 @@ class ParrotBot(discord.Client):
                 self.config["discordbots_org_token"]
             )
 
-            urlopen(dbotsorg_req, count_json)
+            urllib.request.urlopen(dbotsorg_req, count_json)
 
         # bots.discord.pw
         if "bots_discord_pw_token" in self.config:
-            botsdpw_req = urllib2.Request(
+            botsdpw_req = urllib.request.Request(
                 "https://bots.discord.pw/api/bots/%s/stats" % (self.user.id)
             )
             botsdpw_req.add_header(
@@ -97,7 +97,7 @@ class ParrotBot(discord.Client):
                 self.config["bots_discord_pw_token"]
             )
 
-            urlopen(botsdpw_req, count_json)
+            urllib.request.urlopen(botsdpw_req, count_json)
 
     async def is_same_user(self, user_obj, user_str):
         """
