@@ -68,9 +68,9 @@ class ParrotBot(discord.Client):
         })
 
         # discordbots.org
-        if "discordbots_org_token" in self.config:
+        if self.config["discordbots_org_token"]:
             dbotsorg_req = urllib.request.Request(
-                "https://discordbots.org/api/bots/%s/stats" % (self.user.id)
+                "http://discordbots.org/api/bots/%s/stats" % (self.user.id)
             )
             dbotsorg_req.add_header(
                 "Content-Type",
@@ -81,12 +81,12 @@ class ParrotBot(discord.Client):
                 self.config["discordbots_org_token"]
             )
 
-            urllib.request.urlopen(dbotsorg_req, count_json)
+            urllib.request.urlopen(dbotsorg_req, count_json.encode("ascii"))
 
         # bots.discord.pw
-        if "bots_discord_pw_token" in self.config:
+        if self.config["bots_discord_pw_token"]:
             botsdpw_req = urllib.request.Request(
-                "https://bots.discord.pw/api/bots/%s/stats" % (self.user.id)
+                "http://bots.discord.pw/api/bots/%s/stats" % (self.user.id)
             )
             botsdpw_req.add_header(
                 "Content-Type",
@@ -97,7 +97,7 @@ class ParrotBot(discord.Client):
                 self.config["bots_discord_pw_token"]
             )
 
-            urllib.request.urlopen(botsdpw_req, count_json)
+            urllib.request.urlopen(botsdpw_req, count_json.encode("ascii"))
 
     async def is_same_user(self, user_obj, user_str):
         """
