@@ -254,16 +254,19 @@ class ParrotBot(discord.Client):
         """Print that the bot is ready and list connected servers."""
         print("ParrotBot is ready.")
         print("Connected Servers: %d\n" % (len(self.servers)))
+        await self.post_server_count()
 
     async def on_server_join(self, server):
         """Print number of connected servers when connecting to a new server."""
         print("Joined Server %s -- %s." % (server.id, server.name))
         print("Connected Servers: %d\n" % (len(self.servers)))
+        await self.post_server_count()
 
     async def on_server_remove(self, server):
         """Print number of connected servers when leaving a server."""
         print("Left Server %s -- %s." % (server.id, server.name))
         print("Connected Servers: %d\n" % (len(self.servers)))
+        await self.post_server_count()
 
     async def on_message(self, message):
         """Check if message matches the quotation regex and quote it if so."""
