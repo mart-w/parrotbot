@@ -69,9 +69,12 @@ class ParrotBot(discord.Client):
 
         # discordbots.org
         if self.config["discordbots_org_token"]:
-            dbotsorg_req = urllib.request.Request(
+            dbotsorg_redirect_url = urllib.request.urlopen(
                 "http://discordbots.org/api/bots/%s/stats" % (self.user.id)
-            )
+            ).geturl()
+
+            dbotsorg_req = urllib.request.Request(dbotsorg_redirect_url)
+
             dbotsorg_req.add_header(
                 "Content-Type",
                 "application/json"
@@ -85,9 +88,12 @@ class ParrotBot(discord.Client):
 
         # bots.discord.pw
         if self.config["bots_discord_pw_token"]:
-            botsdpw_req = urllib.request.Request(
+            botsdpw_redirect_url = urllib.request.urlopen(
                 "http://bots.discord.pw/api/bots/%s/stats" % (self.user.id)
-            )
+            ).geturl()
+
+            botsdpw_req = urllib.request.Request(botsdpw_redirect_url)
+
             botsdpw_req.add_header(
                 "Content-Type",
                 "application/json"
