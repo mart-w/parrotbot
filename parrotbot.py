@@ -69,10 +69,12 @@ class ParrotBot(discord.Client):
 
         # discordbots.org
         if self.config["discordbots_org_token"]:
+            # Resolve HTTP redirects
             dbotsorg_redirect_url = urllib.request.urlopen(
                 "http://discordbots.org/api/bots/%s/stats" % (self.user.id)
             ).geturl()
 
+            # Construct request and post server count
             dbotsorg_req = urllib.request.Request(dbotsorg_redirect_url)
 
             dbotsorg_req.add_header(
@@ -88,10 +90,21 @@ class ParrotBot(discord.Client):
 
         # bots.discord.pw
         if self.config["bots_discord_pw_token"]:
-            botsdpw_redirect_url = urllib.request.urlopen(
+            # Resolve HTTP redirects
+            botsdpw_redirect_url_req = urllib.request.Request(
                 "http://bots.discord.pw/api/bots/%s/stats" % (self.user.id)
+            )
+
+            botsdpw_redirect_url_req.add_header(
+                "Authorization",
+                self.config["bots_discord_pw_token"]
+            )
+
+            botsdpw_redirect_url = urllib.request.urlopen(
+                botsdpw_redirect_url_req
             ).geturl()
 
+            # Construct request and post server count
             botsdpw_req = urllib.request.Request(botsdpw_redirect_url)
 
             botsdpw_req.add_header(
