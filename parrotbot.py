@@ -19,20 +19,25 @@
 import discord
 import asyncio
 import datetime
+import json
 import re
+import urllib.request
 
 class ParrotBot(discord.Client):
     """Extend discord.Client with an event listener and additional methods."""
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, config, *args, **kwargs):
         """
         Extend class attributes of discord.Client.
 
-        Pass all arguments to discord.Client.__init__() and define new class
-        attributes.
+        Pass all arguments except for config to discord.Client.__init__() and
+        define new class attributes.
 
         Parameters
         ----------
+        configs : dict
+            Configuration object for the bot, created from the Configuration
+            file. Gets turned into a class attribute.
         *args
             Non-keyworded arguments passed to the class upon initialisation.
         **kwargs
@@ -40,11 +45,78 @@ class ParrotBot(discord.Client):
         """
         super(ParrotBot, self).__init__(*args, **kwargs)
 
+        # Configuration object.
+        self.config = config
+
         # Regular expression object to recognise quotes.
         self.re_quote = re.compile(r"(?P<author>.*?)\s*>\s*(?P<content>.+)")
 
         # How many messages are fetched at most by search_message_by_quote().
         self.log_fetch_limit = 100
+
+    async def post_server_count(self):
+        """
+        Post how many servers are connected to Discord bot list sites.
+
+        Create a JSON string containing how many servers are connected right
+        now and post it to discordbots.org and bots.discord.pw using the
+        respective tokens from the config file. If the token for a site is not
+        given, ignore that site.
+        """
+        count_json = json.dumps({
+            "server_count": len(self.servers)
+        })
+
+        # discordbots.org
+        if self.config["discordbots_org_token"]:
+            # Resolve HTTP redirects
+            dbotsorg_redirect_url = urllib.request.urlopen(
+                "http://discordbots.org/api/bots/%s/stats" % (self.user.id)
+            ).geturl()
+
+            # Construct request and post server count
+            dbotsorg_req = urllib.request.Request(dbotsorg_redirect_url)
+
+            dbotsorg_req.add_header(
+                "Content-Type",
+                "application/json"
+            )
+            dbotsorg_req.add_header(
+                "Authorization",
+                self.config["discordbots_org_token"]
+            )
+
+            urllib.request.urlopen(dbotsorg_req, count_json.encode("ascii"))
+
+        # bots.discord.pw
+        if self.config["bots_discord_pw_token"]:
+            # Resolve HTTP redirects
+            botsdpw_redirect_url_req = urllib.request.Request(
+                "http://bots.discord.pw/api/bots/%s/stats" % (self.user.id)
+            )
+
+            botsdpw_redirect_url_req.add_header(
+                "Authorization",
+                self.config["bots_discord_pw_token"]
+            )
+
+            botsdpw_redirect_url = urllib.request.urlopen(
+                botsdpw_redirect_url_req
+            ).geturl()
+
+            # Construct request and post server count
+            botsdpw_req = urllib.request.Request(botsdpw_redirect_url)
+
+            botsdpw_req.add_header(
+                "Content-Type",
+                "application/json"
+            )
+            botsdpw_req.add_header(
+                "Authorization",
+                self.config["bots_discord_pw_token"]
+            )
+
+            urllib.request.urlopen(botsdpw_req, count_json.encode("ascii"))
 
     async def is_same_user(self, user_obj, user_str):
         """
@@ -66,6 +138,9 @@ class ParrotBot(discord.Client):
         -------
         boolean
         """
+        # Escape user input
+        user_str = re.escape(user_str)
+
         user_obj_full_name = user_obj.name + '#' + user_obj.discriminator
 
         if user_obj.id.find(user_str) == 0 \
@@ -198,16 +273,19 @@ class ParrotBot(discord.Client):
         """Print that the bot is ready and list connected servers."""
         print("ParrotBot is ready.")
         print("Connected Servers: %d\n" % (len(self.servers)))
+        await self.post_server_count()
 
     async def on_server_join(self, server):
         """Print number of connected servers when connecting to a new server."""
         print("Joined Server %s -- %s." % (server.id, server.name))
         print("Connected Servers: %d\n" % (len(self.servers)))
+        await self.post_server_count()
 
     async def on_server_remove(self, server):
         """Print number of connected servers when leaving a server."""
         print("Left Server %s -- %s." % (server.id, server.name))
         print("Connected Servers: %d\n" % (len(self.servers)))
+        await self.post_server_count()
 
     async def on_message(self, message):
         """Check if message matches the quotation regex and quote it if so."""
@@ -231,13 +309,71 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.\n""")
 
-# Read API token from token file.
-with open("token.txt", "r") as tokenfile:
-    api_token = tokenfile.readline().rstrip()
+# Configuration object.
+config = {}
 
-# Initialise client object.
-client = ParrotBot()
+# Will be set to True if config.json misses keys or does not exist yet.
+configfile_needs_update = False
+
+# Try to read configuration file.
+try:
+    with open("config.json", "r") as configfile:
+        config = json.load(configfile)
+except FileNotFoundError:
+    print("Configuration file not found!")
+    configfile_needs_update = True
+
+# Check for token.txt for backwards compatibility. If found, get the token file
+# from it and use it for the new configuration, if that does not contain a token
+# yet.
+try:
+    with open("token.txt", "r") as tokenfile:
+        token_from_txt = tokenfile.readline().rstrip()
+        print(
+            "token.txt found. Usage of this file is deprecated; the token will "
+            "be written to the new config.json file."
+        )
+        if "discord-token" not in config:
+            config["discord-token"] = token_from_txt
+            configfile_needs_update = True
+except FileNotFoundError:
+    pass
+
+# Check if the loaded configuration misses keys. If so, ask for user input or
+# assume a default value.
+
+# Discord API token.
+if "discord-token" not in config:
+    configfile_needs_update = True
+    config["discord-token"] = input(
+        "Discord API token not found. Please enter your API token: "
+    )
+
+# discordbots.org API token
+if "discordbots_org_token" not in config:
+    configfile_needs_update = True
+    config["discordbots_org_token"] = input(
+        "discordbots.org API token not found. Please enter your API token "
+        "(leave empty to ignore discordbots.org): "
+    )
+
+# bots.discord.pw API token
+if "bots_discord_pw_token" not in config:
+    configfile_needs_update = True
+    config["bots_discord_pw_token"] = input(
+        "bots.discord.pw API token not found. Please enter your API token "
+        "(leave empty to ignore bots.discord.pw): "
+    )
+
+# (Re)write configuration file if it didn't exist or missed keys.
+if configfile_needs_update:
+    with open("config.json", "w") as configfile:
+        json.dump(config, configfile)
+        print("Configuration file updated.")
+
+# Initialise client object with the loaded configuration.
+client = ParrotBot(config)
 
 # Start bot session.
-print("Start bot session with token %s" % (api_token))
-client.run(api_token)
+print("Start bot session with token %s" % (config["discord-token"]))
+client.run(config["discord-token"])
