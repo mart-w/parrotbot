@@ -32,9 +32,8 @@ ParrotBot also uses the modules `asyncio`, `datetime`, `json`, `re`, and
 installation. You also need a Discord bot user and its API token
 (see https://discordapp.com/developers for further information on that).
 
-If you have all that, just clone this repository and create a file called
-`token.txt` in the repository’s root folder containing nothing but the API
-token. Then you’re ready to go! Insert your bot’s client ID into this URL:
+If you have all that, just clone this repository. Then you’re ready to go!
+Insert your bot’s client ID into this URL:
 
     https://discordapp.com/oauth2/authorize?client_id=YOUR_ID_HERE&scope=bot
 

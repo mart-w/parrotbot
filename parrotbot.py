@@ -241,19 +241,26 @@ class ParrotBot(discord.Client):
         Try to find the quoted message and post an according embed message.
 
         Try to find the quoted message by passing quote to
-        self.search_message_by_quote(). If a fitting message was found,
-        construct an according discord.Embed object and post it to the channel
-        the quote originates from, then delete the original quoting message if
-        allowed. If no fitting message was found, do nothing.
+        self.search_message_by_quote(). If a fitting message was found and the
+        bot is allowed to send messages in the channel, construct an according
+        discord.Embed object and post it to the channel the quote originates
+        from, then delete the original quoting message if allowed. If no fitting
+        message was found, don't do anything.
 
         Parameters
         ----------
         quote : discord.Message
             Message that could contain a quote from another message.
         """
-        quoted_message = await self.search_message_by_quote(quote)
+        quoted_message = await self.search_message_by_quote(quote)#
 
-        if quoted_message:
+        # Find own member object on the server.
+        bot_member = quote.server.get_member(self.user.id)
+
+        # Check if the bot is allowed to send messages in that channel.
+        bot_may_send = quote.channel.permissions_for(bot_member).send_messages
+
+        if quoted_message and bot_may_send:
             quote_embed = await self.create_quote_embed(
                 quote.author,
                 quoted_message
@@ -368,7 +375,7 @@ if "bots_discord_pw_token" not in config:
 # (Re)write configuration file if it didn't exist or missed keys.
 if configfile_needs_update:
     with open("config.json", "w") as configfile:
-        json.dump(config, configfile)
+        json.dump(config, configfile, indent=2)
         print("Configuration file updated.")
 
 # Initialise client object with the loaded configuration.
