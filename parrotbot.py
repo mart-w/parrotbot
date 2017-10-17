@@ -252,7 +252,7 @@ class ParrotBot(discord.Client):
         quote : discord.Message
             Message that could contain a quote from another message.
         """
-        quoted_message = await self.search_message_by_quote(quote)#
+        quoted_message = await self.search_message_by_quote(quote)
 
         # Find own member object on the server.
         bot_member = quote.server.get_member(self.user.id)
