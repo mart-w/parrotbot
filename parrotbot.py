@@ -375,7 +375,7 @@ if "bots_discord_pw_token" not in config:
 # (Re)write configuration file if it didn't exist or missed keys.
 if configfile_needs_update:
     with open("config.json", "w") as configfile:
-        json.dump(config, configfile)
+        json.dump(config, configfile, indent=2)
         print("Configuration file updated.")
 
 # Initialise client object with the loaded configuration.
