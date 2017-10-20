@@ -252,7 +252,7 @@ class ParrotBot(discord.Client):
         quote : discord.Message
             Message that could contain a quote from another message.
         """
-        quoted_message = await self.search_message_by_quote(quote)#
+        quoted_message = await self.search_message_by_quote(quote)
 
         # Find own member object on the server.
         bot_member = quote.server.get_member(self.user.id)
@@ -277,10 +277,31 @@ class ParrotBot(discord.Client):
     # Event listeners.
 
     async def on_ready(self):
-        """Print that the bot is ready and list connected servers."""
+        """
+        Print ready message, post server count and set the bot's presence.
+
+        Print a message saying that the server is ready and how many servers it
+        is connected to. If the according value in the config file is set to
+        True, also list all connected servers. Post the amount of connected
+        servers to bot list sites, if according tokens are fiven in the config
+        file. Finally set the bot's presence (game status) if one is specified
+        in the config file.
+        """
         print("ParrotBot is ready.")
-        print("Connected Servers: %d\n" % (len(self.servers)))
+        print("\nConnected Servers: %d" % (len(self.servers)))
+
+        if self.config["server_list"]:
+            for server in self.servers:
+                print("%s - %s" % (server.id, server.name))
+
+        print()
+
         await self.post_server_count()
+
+        if "presence" in self.config:
+            presence = discord.Game()
+            presence.name = self.config["presence"]
+            await self.change_presence(game=presence)
 
     async def on_server_join(self, server):
         """Print number of connected servers when connecting to a new server."""
@@ -372,6 +393,33 @@ if "bots_discord_pw_token" not in config:
         "(leave empty to ignore bots.discord.pw): "
     )
 
+# presence (game status)
+if "presence" not in config:
+    configfile_needs_update = True
+    config["presence"] = input(
+        "Please specify a presence or game status. This will be shown in the "
+        "bot's user profile (leave empty to disable this feature): "
+    )
+
+# whether the server list should be displayed on startup
+if "server_list" not in config:
+    configfile_needs_update = True
+
+    answer = None
+
+    while answer == None or answer.lower() not in ("y", "yes", "n", "no", ""):
+        answer = input(
+            "Should the bot list all connected servers on startup? [Y/n]: "
+        )
+
+        if answer.lower() not in ("y", "yes", "n", "no", ""):
+            print("\nPlease answer with either yes or no.\n")
+
+    if answer.lower() in ("y", "yes", ""):
+        config["server_list"] = True
+    else:
+        config["server_list"] = False
+
 # (Re)write configuration file if it didn't exist or missed keys.
 if configfile_needs_update:
     with open("config.json", "w") as configfile:
@@ -381,6 +429,14 @@ if configfile_needs_update:
 # Initialise client object with the loaded configuration.
 client = ParrotBot(config)
 
-# Start bot session.
-print("Start bot session with token %s" % (config["discord-token"]))
-client.run(config["discord-token"])
+while True:
+    try:
+        # Start bot session.
+        print("Start bot session with token %s" % (config["discord-token"]))
+        client.run(config["discord-token"])
+    except ConnectionResetError:
+        print("\n--------------------------------------------")
+        print("Lost Connection. Retrying in 5 seconds ...")
+        print("--------------------------------------------\n")
+
+        sleep(5)
