@@ -277,10 +277,15 @@ class ParrotBot(discord.Client):
     # Event listeners.
 
     async def on_ready(self):
-        """Print that the bot is ready and list connected servers."""
+        """Print ready message, show server count and set the bot's presence."""
         print("ParrotBot is ready.")
         print("Connected Servers: %d\n" % (len(self.servers)))
         await self.post_server_count()
+
+        if "presence" in self.config:
+            presence = discord.Game()
+            presence.name = self.config["presence"]
+            await self.change_presence(game=presence)
 
     async def on_server_join(self, server):
         """Print number of connected servers when connecting to a new server."""
@@ -370,6 +375,14 @@ if "bots_discord_pw_token" not in config:
     config["bots_discord_pw_token"] = input(
         "bots.discord.pw API token not found. Please enter your API token "
         "(leave empty to ignore bots.discord.pw): "
+    )
+
+# presence (game status)
+if "presence" not in config:
+    configfile_needs_update = True
+    config["presence"] = input(
+        "Please specify a presence or game status. This will be shown in the "
+        "bot's user profile (leave empty to disable this feature): "
     )
 
 # (Re)write configuration file if it didn't exist or missed keys.
