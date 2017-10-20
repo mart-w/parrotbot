@@ -277,9 +277,25 @@ class ParrotBot(discord.Client):
     # Event listeners.
 
     async def on_ready(self):
-        """Print ready message, show server count and set the bot's presence."""
+        """
+        Print ready message, post server count and set the bot's presence.
+
+        Print a message saying that the server is ready and how many servers it
+        is connected to. If the according value in the config file is set to
+        True, also list all connected servers. Post the amount of connected
+        servers to bot list sites, if according tokens are fiven in the config
+        file. Finally set the bot's presence (game status) if one is specified
+        in the config file.
+        """
         print("ParrotBot is ready.")
-        print("Connected Servers: %d\n" % (len(self.servers)))
+        print("\nConnected Servers: %d" % (len(self.servers)))
+
+        if self.config["server_list"]:
+            for server in self.servers:
+                print("%s - %s" % (server.id, server.name))
+
+        print()
+
         await self.post_server_count()
 
         if "presence" in self.config:
@@ -384,6 +400,25 @@ if "presence" not in config:
         "Please specify a presence or game status. This will be shown in the "
         "bot's user profile (leave empty to disable this feature): "
     )
+
+# whether the server list should be displayed on startup
+if "server_list" not in config:
+    configfile_needs_update = True
+
+    answer = None
+
+    while answer == None or answer.lower() not in ("y", "yes", "n", "no", ""):
+        answer = input(
+            "Should the bot list all connected servers on startup? [Y/n]: "
+        )
+
+        if answer.lower() not in ("y", "yes", "n", "no", ""):
+            print("\nPlease answer with either yes or no.\n")
+
+    if answer.lower() in ("y", "yes", ""):
+        config["server_list"] = True
+    else:
+        config["server_list"] = False
 
 # (Re)write configuration file if it didn't exist or missed keys.
 if configfile_needs_update:
