@@ -381,6 +381,14 @@ if configfile_needs_update:
 # Initialise client object with the loaded configuration.
 client = ParrotBot(config)
 
-# Start bot session.
-print("Start bot session with token %s" % (config["discord-token"]))
-client.run(config["discord-token"])
+while True:
+    try:
+        # Start bot session.
+        print("Start bot session with token %s" % (config["discord-token"]))
+        client.run(config["discord-token"])
+    except ConnectionResetError:
+        print("\n--------------------------------------------")
+        print("Lost Connection. Retrying in 5 seconds ...")
+        print("--------------------------------------------\n")
+
+        sleep(5)
