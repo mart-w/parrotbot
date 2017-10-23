@@ -192,16 +192,16 @@ class ParrotBot(discord.Client):
         """
         Create a discord.Embed object that can then be posted to a channel.
 
-        Generate a label containing the display name of the quoting user, the
-        date and time the quoted message was posted on and the time and date it
-        was edited, if it was edited.
+        Generate a label containing the display name of the quoting user and
+        whether the quoted message has been edited.
 
         Create a new discord.Embed object and map:
             1. the display name of the author of the quote to Embed.author.name
             2. their avatar to Embed.author.icon_url
             3. the quote's content to Embed.description
             4. the label generated earlier to Embed.footer.text
-            5. the avatar of the quoting user to Embed.footer.icon_url.
+            5. the avatar of the quoting user to Embed.footer.icon_url
+            6. the timestamp of the quoted message to Embed.timestamp.
         Return the object.
 
         Parameters
@@ -215,24 +215,24 @@ class ParrotBot(discord.Client):
         -------
         discord.Embed
         """
-        timedatelabel = quote.timestamp.strftime("%x, %X")
-
-        if quote.edited_timestamp: # Message was edited
-            timedatelabel += quote.edited_timestamp.strftime(
-                ", edited on %x, %X"
-            )
 
         quote_embed = discord.Embed(description=quote.content)
         quote_embed.set_author(
             name=quote.author.display_name,
             icon_url=quote.author.avatar_url
         )
+
+        footertext = "Quoted by %s." % (quoting_user.display_name)
+
+        if quote.edited_timestamp: # Message was edited
+            footertext += " Edited."
+
         quote_embed.set_footer(
-            text="%s. Quoted by %s." % (
-                timedatelabel, quoting_user.display_name
-            ),
+            text=footertext,
             icon_url=quoting_user.avatar_url
         )
+
+        quote_embed.timestamp = quote.timestamp
 
         return quote_embed
 
