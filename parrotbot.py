@@ -48,9 +48,6 @@ class ParrotBot(discord.Client):
         # Configuration object.
         self.config = config
 
-        # Regular expression object to recognise quotes.
-        self.re_quote = re.compile(r"(?P<author>.*?)\s*>\s*(?P<content>.+)")
-
         # How many messages are fetched at most by search_message_by_quote().
         self.log_fetch_limit = 100
 
@@ -356,6 +353,63 @@ class ParrotBot(discord.Client):
             except discord.Forbidden:
                 pass
 
+    async def send_help_message(self, channel):
+        """Send the help message of the bot to the given channel."""
+        await self.send_message(
+            channel,
+            content="Quoting other users’ messages is easy. Just type a "
+            "greater-sign (>), followed by an excerpt from the message you "
+            "want to quote:\n```> sample message```\nI will attempt to "
+            "find the right message based on that excerpt and display it.\n"
+            "If I found the wrong message, consider increasing the length of "
+            "your excerpt. You can also preceed the greater-sign with a user’s "
+            "name to limit my search to messages from that user:\n"
+            "```sample_user > sample message```\nFor more information about "
+            "me, type “<%s> info”." % (self.user.id)
+        )
+
+    async def send_info_message(self, channel):
+        """Send information about the bot to the given channel."""
+        await self.send_message(
+            channel,
+            content="Hi, my name is ParrotBot and I’m here to assist you with "
+            "quoting other users’ messages – a function Discord still lacks by "
+            "default. If you’d like to know how to do that, just type "
+            "“<@%s> help”. Also, feel free to take a look at my source code on "
+            "https://github.com/mart-w/parrotbot/ if you’re interested in the "
+            "nitty gritty details.\n\nPlease note that I am free software: you "
+            "can redistribute my source code and/or modify it under the terms "
+            "of the GNU General Public License as published by the Free "
+            "Software Foundation, either version 3 of the License, or "
+            "(at your option) any later version.\n\nI am distributed in the "
+            "hope that I will be useful, but **without any warranty**; without "
+            "even the implied warranty of merchantability or fitness for a "
+            "particular purpose. See the GNU General Public License for more "
+            "details: http://www.gnu.org/licenses/" % (self.user.id)
+        )
+
+    async def handle_command(self, message):
+        """
+        Respond to a command given by a user.
+
+        Use the regular expression for commands to check whether a command has
+        actually been given by the user. If so and if it is a valid command,
+        execute it. If not command is given or the command is not valid, assume
+        that the info command is meant.
+
+        Parameters
+        ----------
+        message : discord.Message
+            The message containing the command.
+        """
+        command_match = self.re_command.fullmatch(message.content)
+
+        command = command_match.group("command")
+
+        if command in ("help", "?", "commands"):
+            await self.send_help_message(message.channel)
+        else:
+            await self.send_info_message(message.channel)
 
     # Event listeners.
 
@@ -363,13 +417,22 @@ class ParrotBot(discord.Client):
         """
         Print ready message, post server count and set the bot's presence.
 
-        Print a message saying that the server is ready and how many servers it
+        Compile the needed regular expresssion objects. Then
+        print a message saying that the server is ready and how many servers it
         is connected to. If the according value in the config file is set to
         True, also list all connected servers. Post the amount of connected
         servers to bot list sites, if according tokens are fiven in the config
         file. Finally set the bot's presence (game status) if one is specified
         in the config file.
         """
+        # Regular expression object to recognise quotes.
+        self.re_quote = re.compile(r"(?P<author>.*?)\s*>\s*(?P<content>.+)")
+
+        # Must be initialised here because it depends on self.user.id.
+        self.re_command = re.compile(
+            r"\s*<@" + self.user.id + r">\s*(?P<command>.*?)\s*"
+        )
+
         print("ParrotBot is ready.")
         print("\nConnected Servers: %d" % (len(self.servers)))
 
@@ -399,8 +462,21 @@ class ParrotBot(discord.Client):
         await self.post_server_count()
 
     async def on_message(self, message):
-        """Check if message matches the quotation regex and quote it if so."""
-        if self.re_quote.fullmatch(message.content):
+        """
+        Check if the bot should respond to the message and act accordingly.
+
+        If the message matches the regular expression for commands, execute
+        the command. If not, check whether the message matches the regular
+        expression for quotes and quote the message if that is the case.
+
+        Parameters
+        ----------
+        message : discord.message
+            The message the bot received.
+        """
+        if self.re_command.fullmatch(message.content):
+            await self.handle_command(message)
+        elif self.re_quote.fullmatch(message.content):
             await self.quote_message(message)
 
 
