@@ -188,12 +188,92 @@ class ParrotBot(discord.Client):
 
         return None
 
+    async def timedelta_timestamp_string(self, timedelta):
+        """
+        Generate a string that expresses a time difference in words.
+
+        Calculate the time difference of a given timedate.timedelta object in
+        years, days, hours, minutes, and seconds and return a string expressing
+        that in a natural way.
+
+        Parameters
+        ----------
+        timedelta : timedate.timedelta
+            The time difference that should be expressed in words.
+
+        Returns
+        -------
+        str
+        """
+        days = timedelta.days
+
+        years = days // 365
+        days -= years * 365
+
+        seconds = timedelta.seconds
+
+        minutes = seconds // 60
+        seconds -= minutes * 60
+
+        hours = minutes // 60
+        minutes -= hours * 60
+
+        timedelta_string = ""
+
+        if years > 0:
+            timedelta_string += str(years) + " years"
+
+            # Was this the last element to be printed? If not ...
+            if days + hours + minutes + seconds > 0:
+                timedelta_string += " and "
+            if days + hours + minutes + seconds > 0:
+                # Was this the second last element to be printed? If so ...
+                if hours + minutes + seconds == 0:
+                    timedelta_string += " and "
+                else:
+                    timedelta_string += ", "
+
+        if days > 0:
+            timedelta_string += str(days) + " days"
+
+            # Was this the last element to be printed? If not ...
+            if hours + minutes + seconds > 0:
+                # Was this the second last element to be printed? If so ...
+                if minutes + seconds == 0:
+                    timedelta_string += " and "
+                else:
+                    timedelta_string += ", "
+
+        if hours > 0:
+            timedelta_string += str(hours) + " hours"
+
+            # Was this the last element to be printed? If not ...
+            if minutes + seconds > 0:
+                # Was this the second last element to be printed? If so ...
+                if seconds == 0:
+                    timedelta_string += " and "
+                else:
+                    timedelta_string += ", "
+
+        if minutes > 0:
+            timedelta_string += str(minutes) + " minutes"
+
+            # Was this the last element to be printed? If not ...
+            if days + hours + minutes + seconds > 0:
+                timedelta_string += " and "
+
+        if seconds > 0:
+            timedelta_string += str(seconds) + " seconds"
+
+        return timedelta_string
+
     async def create_quote_embed(self, quoting_user, quote):
         """
         Create a discord.Embed object that can then be posted to a channel.
 
-        Generate a label containing the display name of the quoting user and
-        whether the quoted message has been edited.
+        Generate a label containing the display name of the quoting user,
+        whether the quoted message has been edited and how much time has passed
+        between when the message has been sent and when it was edited.
 
         Create a new discord.Embed object and map:
             1. the display name of the author of the quote to Embed.author.name
@@ -225,7 +305,10 @@ class ParrotBot(discord.Client):
         footertext = "Quoted by %s." % (quoting_user.display_name)
 
         if quote.edited_timestamp: # Message was edited
-            footertext += " Edited."
+            post_edit_delta = quote.edited_timestamp - quote.timestamp
+            footertext += " Edited %s later." % (
+                await self.timedelta_timestamp_string(post_edit_delta)
+            )
 
         quote_embed.set_footer(
             text=footertext,
