@@ -365,7 +365,7 @@ class ParrotBot(discord.Client):
             "your excerpt. You can also preceed the greater-sign with a user’s "
             "name to limit my search to messages from that user:\n"
             "```sample_user > sample message```\nFor more information about "
-            "me, type “<%s> info”." % (self.user.id)
+            "me, type “<@%s> info”." % (self.user.id)
         )
 
     async def send_info_message(self, channel):
