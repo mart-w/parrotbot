@@ -119,7 +119,10 @@ class ParrotBot(discord.Client):
         """
         Check if a given string represents a given User.
 
-        Check if:
+        If the string resembles a mention string, truncate it so that only
+        the user ID is left.
+
+        Then, check if:
             1. the given string is (the beginning of) the user's id.
             2. the given string is (contained in) the user's full user name.
             3. the given string is (contained in) the user's display name.
@@ -135,6 +138,13 @@ class ParrotBot(discord.Client):
         -------
         boolean
         """
+        # If user_str is a mention string, replace it by just the ID contained
+        # in it
+        mention_search_result = self.re_user_mention.search(user_str)
+
+        if mention_search_result:
+            user_str = mention_search_result.group("ID")
+
         # Escape user input
         user_str = re.escape(user_str)
 
@@ -425,8 +435,11 @@ class ParrotBot(discord.Client):
         file. Finally set the bot's presence (game status) if one is specified
         in the config file.
         """
-        # Regular expression object to recognise quotes.
-        self.re_quote = re.compile(r"(?P<author>.*?)\s*>\s*(?P<content>.+)")
+        # Regular expression object used to recognise quotes.
+        self.re_quote = re.compile(r"(?P<author>.*)\s*>\s*(?P<content>.+)")
+
+        # Regular expression object for user mention strings.
+        self.re_user_mention = re.compile(r"<@!(?P<ID>.*?)>")
 
         # Must be initialised here because it depends on self.user.id.
         self.re_command = re.compile(
