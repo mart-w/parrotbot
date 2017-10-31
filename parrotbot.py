@@ -48,9 +48,6 @@ class ParrotBot(discord.Client):
         # Configuration object.
         self.config = config
 
-        # Regular expression object to recognise quotes.
-        self.re_quote = re.compile(r"(?P<author>.*?)\s*>\s*(?P<content>.+)")
-
         # How many messages are fetched at most by search_message_by_quote().
         self.log_fetch_limit = 100
 
@@ -122,7 +119,10 @@ class ParrotBot(discord.Client):
         """
         Check if a given string represents a given User.
 
-        Check if:
+        If the string resembles a mention string, truncate it so that only
+        the user ID is left.
+
+        Then, check if:
             1. the given string is (the beginning of) the user's id.
             2. the given string is (contained in) the user's full user name.
             3. the given string is (contained in) the user's display name.
@@ -138,6 +138,13 @@ class ParrotBot(discord.Client):
         -------
         boolean
         """
+        # If user_str is a mention string, replace it by just the ID contained
+        # in it
+        mention_search_result = self.re_user_mention.search(user_str)
+
+        if mention_search_result:
+            user_str = mention_search_result.group("ID")
+
         # Escape user input
         user_str = re.escape(user_str)
 
@@ -150,58 +157,145 @@ class ParrotBot(discord.Client):
         else:
             return False
 
-    async def search_message_by_quote(self, quote):
+    async def search_message_by_quote(self, quote, partial=False):
         """
         Finds a quote in a given channel and returns the found Message.
 
         Fetch an amount of messages older than the given quote from the channel
         the quote originates from, depending on self.log_fetch_limit. Then
-        search for a message containing the quote and return it if found. If an
-        author is given in the quote, only consider posts of that author. If no
-        matching message is found, return None.
+        search for a message containing the quote or one whose ID begins with
+        the quote string and return it if found. If an author is given in the
+        quote, only consider posts of that author. If no matching message is
+        found, return None.
 
         Parameters
         ----------
         quote : discord.Message
             Message object containing a quote from another Message from the
             same channel.
+        partial : boolean
+            [Optional] Whether the quote being dealt with is a partial one.
 
         Returns
         -------
         discord.Message or None
         """
-        match = self.re_quote.fullmatch(quote.content).groupdict()
+        if partial:
+            match = self.re_partial_quote.fullmatch(quote.content).groupdict()
+        else:
+            match = self.re_quote.fullmatch(quote.content).groupdict()
 
-        async for message in self.logs_from( \
-            quote.channel, \
-            limit=self.log_fetch_limit, \
-            before=quote \
+        async for message in self.logs_from(
+            quote.channel,
+            limit=self.log_fetch_limit,
+            before=quote
         ):
             if not match["author"] \
             or await self.is_same_user(message.author, match["author"]):
-                if re.search( \
-                    re.escape(match["content"]), \
-                    message.content, \
-                    flags=re.IGNORECASE \
+                if message.id.find(match["content"]) == 0 and not partial \
+                or re.search(
+                    re.escape(match["content"]),
+                    message.content,
+                    flags=re.IGNORECASE
                 ):
                     return message
 
         return None
 
-    async def create_quote_embed(self, quoting_user, quote):
+    async def timedelta_timestamp_string(self, timedelta):
+        """
+        Generate a string that expresses a time difference in words.
+
+        Calculate the time difference of a given timedate.timedelta object in
+        years, days, hours, minutes, and seconds and return a string expressing
+        that in a natural way.
+
+        Parameters
+        ----------
+        timedelta : timedate.timedelta
+            The time difference that should be expressed in words.
+
+        Returns
+        -------
+        str
+        """
+        days = timedelta.days
+
+        years = days // 365
+        days -= years * 365
+
+        seconds = timedelta.seconds
+
+        minutes = seconds // 60
+        seconds -= minutes * 60
+
+        hours = minutes // 60
+        minutes -= hours * 60
+
+        timedelta_string = ""
+
+        if years > 0:
+            timedelta_string += str(years) + " years"
+
+            # Was this the last element to be printed? If not ...
+            if days + hours + minutes + seconds > 0:
+                timedelta_string += " and "
+            if days + hours + minutes + seconds > 0:
+                # Was this the second last element to be printed? If so ...
+                if hours + minutes + seconds == 0:
+                    timedelta_string += " and "
+                else:
+                    timedelta_string += ", "
+
+        if days > 0:
+            timedelta_string += str(days) + " days"
+
+            # Was this the last element to be printed? If not ...
+            if hours + minutes + seconds > 0:
+                # Was this the second last element to be printed? If so ...
+                if minutes + seconds == 0:
+                    timedelta_string += " and "
+                else:
+                    timedelta_string += ", "
+
+        if hours > 0:
+            timedelta_string += str(hours) + " hours"
+
+            # Was this the last element to be printed? If not ...
+            if minutes + seconds > 0:
+                # Was this the second last element to be printed? If so ...
+                if seconds == 0:
+                    timedelta_string += " and "
+                else:
+                    timedelta_string += ", "
+
+        if minutes > 0:
+            timedelta_string += str(minutes) + " minutes"
+
+            # Was this the last element to be printed? If not ...
+            if days + hours + minutes + seconds > 0:
+                timedelta_string += " and "
+
+        if seconds > 0:
+            timedelta_string += str(seconds) + " seconds"
+
+        return timedelta_string
+
+    async def create_quote_embed(self, quoting_user, quote, alt=None):
         """
         Create a discord.Embed object that can then be posted to a channel.
 
-        Generate a label containing the display name of the quoting user, the
-        date and time the quoted message was posted on and the time and date it
-        was edited, if it was edited.
+        Generate a label containing the display name of the quoting user,
+        whether the quoted message has been edited and how much time has passed
+        between when the message has been sent and when it was edited.
 
         Create a new discord.Embed object and map:
             1. the display name of the author of the quote to Embed.author.name
             2. their avatar to Embed.author.icon_url
-            3. the quote's content to Embed.description
+            3. the quote's content (or alt, if given) to Embed.description
             4. the label generated earlier to Embed.footer.text
-            5. the avatar of the quoting user to Embed.footer.icon_url.
+            5. the avatar of the quoting user to Embed.footer.icon_url
+            6. the timestamp of the quoted message to Embed.timestamp.
         Return the object.
 
         Parameters
@@ -210,33 +304,38 @@ class ParrotBot(discord.Client):
             The user originally quoting the other message.
         quote : discord.Message
             The quoted message.
+        alt : str
+            [Optional] An alternate message text for the embed box.
 
         Returns
         -------
         discord.Embed
         """
-        timedatelabel = quote.timestamp.strftime("%x, %X")
 
-        if quote.edited_timestamp: # Message was edited
-            timedatelabel += quote.edited_timestamp.strftime(
-                ", edited on %x, %X"
-            )
-
-        quote_embed = discord.Embed(description=quote.content)
+        quote_embed = discord.Embed(description=alt or quote.content)
         quote_embed.set_author(
             name=quote.author.display_name,
             icon_url=quote.author.avatar_url
         )
+
+        footertext = "Quoted by %s." % (quoting_user.display_name)
+
+        if quote.edited_timestamp: # Message was edited
+            post_edit_delta = quote.edited_timestamp - quote.timestamp
+            footertext += " Edited %s later." % (
+                await self.timedelta_timestamp_string(post_edit_delta)
+            )
+
         quote_embed.set_footer(
-            text="%s. Quoted by %s." % (
-                timedatelabel, quoting_user.display_name
-            ),
+            text=footertext,
             icon_url=quoting_user.avatar_url
         )
 
+        quote_embed.timestamp = quote.timestamp
+
         return quote_embed
 
-    async def quote_message(self, quote):
+    async def quote_message(self, quote, partial=False):
         """
         Try to find the quoted message and post an according embed message.
 
@@ -251,8 +350,11 @@ class ParrotBot(discord.Client):
         ----------
         quote : discord.Message
             Message that could contain a quote from another message.
+        partial : boolean
+            [Optional] Whether a partial quote is requested. In this case, only
+            show the part given by the user in the embed box.
         """
-        quoted_message = await self.search_message_by_quote(quote)
+        quoted_message = await self.search_message_by_quote(quote, partial)
 
         # Find own member object on the server.
         bot_member = quote.server.get_member(self.user.id)
@@ -261,10 +363,27 @@ class ParrotBot(discord.Client):
         bot_may_send = quote.channel.permissions_for(bot_member).send_messages
 
         if quoted_message and bot_may_send:
-            quote_embed = await self.create_quote_embed(
-                quote.author,
-                quoted_message
-            )
+            if partial:
+                quote_request_match = self.re_partial_quote.fullmatch(
+                    quote.content
+                )
+
+                matched_quote = re.search(
+                    quote_request_match.group("content"),
+                    quoted_message.content,
+                    flags=re.IGNORECASE
+                )
+
+                quote_embed = await self.create_quote_embed(
+                    quote.author,
+                    quoted_message,
+                    matched_quote.group(0)
+                )
+            else:
+                quote_embed = await self.create_quote_embed(
+                    quote.author,
+                    quoted_message
+                )
 
             await self.send_message(quote.channel, embed=quote_embed)
 
@@ -273,6 +392,65 @@ class ParrotBot(discord.Client):
             except discord.Forbidden:
                 pass
 
+    async def send_help_message(self, channel):
+        """Send the help message of the bot to the given channel."""
+        await self.send_message(
+            channel,
+            content="Quoting other users’ messages is easy. Just type a "
+            "greater-sign (>), followed by an excerpt from the message you "
+            "want to quote:\n```> sample message```\nI will attempt to "
+            "find the right message based on that excerpt and display it.\n"
+            "If I found the wrong message, consider increasing the length of "
+            "your excerpt. You can also preceed the greater-sign with a user’s "
+            "name to limit my search to messages from that user:\n"
+            "```sample_user > sample message```\nIf you want me to not display "
+            "the full message but only the part you gave me, type two "
+            "greater-signs instead of one:\n```>> sample```\nFor more "
+            "information on me, type “<@%s> info”." % (self.user.id)
+        )
+
+    async def send_info_message(self, channel):
+        """Send information about the bot to the given channel."""
+        await self.send_message(
+            channel,
+            content="Hi, my name is ParrotBot and I’m here to assist you with "
+            "quoting other users’ messages – a function Discord still lacks by "
+            "default. If you’d like to know how to do that, just type "
+            "“<@%s> help”. Also, feel free to take a look at my source code on "
+            "https://github.com/mart-w/parrotbot/ if you’re interested in the "
+            "nitty gritty details.\n\nPlease note that I am free software: you "
+            "can redistribute my source code and/or modify it under the terms "
+            "of the GNU General Public License as published by the Free "
+            "Software Foundation, either version 3 of the License, or "
+            "(at your option) any later version.\n\nI am distributed in the "
+            "hope that I will be useful, but **without any warranty**; without "
+            "even the implied warranty of merchantability or fitness for a "
+            "particular purpose. See the GNU General Public License for more "
+            "details: http://www.gnu.org/licenses/" % (self.user.id)
+        )
+
+    async def handle_command(self, message):
+        """
+        Respond to a command given by a user.
+
+        Use the regular expression for commands to check whether a command has
+        actually been given by the user. If so and if it is a valid command,
+        execute it. If not command is given or the command is not valid, assume
+        that the info command is meant.
+
+        Parameters
+        ----------
+        message : discord.Message
+            The message containing the command.
+        """
+        command_match = self.re_command.fullmatch(message.content)
+
+        command = command_match.group("command")
+
+        if command in ("help", "?", "commands"):
+            await self.send_help_message(message.channel)
+        else:
+            await self.send_info_message(message.channel)
 
     # Event listeners.
 
@@ -280,13 +458,30 @@ class ParrotBot(discord.Client):
         """
         Print ready message, post server count and set the bot's presence.
 
-        Print a message saying that the server is ready and how many servers it
+        Compile the needed regular expresssion objects. Then
+        print a message saying that the server is ready and how many servers it
         is connected to. If the according value in the config file is set to
         True, also list all connected servers. Post the amount of connected
         servers to bot list sites, if according tokens are fiven in the config
         file. Finally set the bot's presence (game status) if one is specified
         in the config file.
         """
+        # Regular expression objects used to recognise quotes.
+        self.re_quote = re.compile(
+            r"(?P<author>.*)\s*>\s*(?P<content>.+)"
+        )
+        self.re_partial_quote = re.compile(
+            r"(?P<author>.*)\s*>>\s*(?P<content>.+)"
+        )
+
+        # Regular expression object for user mention strings.
+        self.re_user_mention = re.compile(r"<@!(?P<ID>.*?)>")
+
+        # Must be initialised here because it depends on self.user.id.
+        self.re_command = re.compile(
+            r"\s*<@" + self.user.id + r">\s*(?P<command>.*?)\s*"
+        )
+
         print("ParrotBot is ready.")
         print("\nConnected Servers: %d" % (len(self.servers)))
 
@@ -316,9 +511,26 @@ class ParrotBot(discord.Client):
         await self.post_server_count()
 
     async def on_message(self, message):
-        """Check if message matches the quotation regex and quote it if so."""
-        if self.re_quote.fullmatch(message.content):
-            await self.quote_message(message)
+        """
+        Check if the bot should respond to the message and act accordingly.
+
+        If the message matches the regular expression for commands, execute
+        the command. If not, check whether the message matches the regular
+        expression for quotes or partial quote and quote the message if that is
+        the case. Messages from bots are ignored.
+
+        Parameters
+        ----------
+        message : discord.message
+            The message the bot received.
+        """
+        if not message.author.bot:
+            if self.re_command.fullmatch(message.content):
+                await self.handle_command(message)
+            elif self.re_partial_quote.fullmatch(message.content):
+                await self.quote_message(message, True)
+            elif self.re_quote.fullmatch(message.content):
+                await self.quote_message(message)
 
 
 # Print GNU GPL notice
