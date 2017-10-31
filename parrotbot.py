@@ -468,16 +468,18 @@ class ParrotBot(discord.Client):
         If the message matches the regular expression for commands, execute
         the command. If not, check whether the message matches the regular
         expression for quotes and quote the message if that is the case.
+        Messages from bots are ignored.
 
         Parameters
         ----------
         message : discord.message
             The message the bot received.
         """
-        if self.re_command.fullmatch(message.content):
-            await self.handle_command(message)
-        elif self.re_quote.fullmatch(message.content):
-            await self.quote_message(message)
+        if not message.author.bot:
+            if self.re_command.fullmatch(message.content):
+                await self.handle_command(message)
+            elif self.re_quote.fullmatch(message.content):
+                await self.quote_message(message)
 
 
 # Print GNU GPL notice
