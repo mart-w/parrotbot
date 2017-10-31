@@ -403,8 +403,8 @@ class ParrotBot(discord.Client):
             "If I found the wrong message, consider increasing the length of "
             "your excerpt. You can also preceed the greater-sign with a user’s "
             "name to limit my search to messages from that user:\n"
-            "```sample_user > sample message```\nIf I shall not display the "
-            "full message but only the part you gave me, type two "
+            "```sample_user > sample message```\nIf you want me to not display "
+            "the full message but only the part you gave me, type two "
             "greater-signs instead of one:\n```>> sample```\nFor more "
             "information on me, type “<@%s> info”." % (self.user.id)
         )
