@@ -163,9 +163,10 @@ class ParrotBot(discord.Client):
 
         Fetch an amount of messages older than the given quote from the channel
         the quote originates from, depending on self.log_fetch_limit. Then
-        search for a message containing the quote and return it if found. If an
-        author is given in the quote, only consider posts of that author. If no
-        matching message is found, return None.
+        search for a message containing the quote or one whose ID begins with
+        the quote string and return it if found. If an author is given in the
+        quote, only consider posts of that author. If no matching message is
+        found, return None.
 
         Parameters
         ----------
@@ -186,7 +187,8 @@ class ParrotBot(discord.Client):
         ):
             if not match["author"] \
             or await self.is_same_user(message.author, match["author"]):
-                if re.search( \
+                if message.id.find(match["content"]) == 0 \
+                or re.search( \
                     re.escape(match["content"]), \
                     message.content, \
                     flags=re.IGNORECASE \
