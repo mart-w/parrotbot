@@ -6,9 +6,10 @@ doesn’t support quotation.
 With ParrotBot, you can easily quote other messages, as long as they are in the
 same channel and weren’t posted too long ago.¹ Just send a message containing
 a greater-sign (>), followed by an excerpt from the message you want to quote –
-just like many people do anyways. ParrotBot will automatically find the most
-recent occurrence of this quote, display the according message in a box, and
-delete the text-only quote you sent (if you allow it to):
+just like many people do anyways. Message IDs work, as well. ParrotBot will
+automatically find the most recent occurrence of this quote, display the
+according message in a box, and delete the text-only quote you sent (if you
+allow it to):
 
 ![Example quote](https://github.com/mart-w/parrotbot/blob/master/doc_img/example_quote.png?raw=true)
 
@@ -20,9 +21,15 @@ just put the user name, nickname or user ID of the author in front of the
 greater-sign and clever little ParrotBot will only consider messages from that
 user.
 
+In both of those cases, the bot will find an display the whole quoted message.
+If you prefer it to show just the part of the message you gave to it, use two
+greater-signs (`>>`).
 
-¹ To reduce server load, the number of messages searched is limited. That limit
-can be adjusted to your needs, of course.
+Also see the help and info commands: Just type `@ParrotBot info` or
+`@ParrotBot help` (replace `@ParrotBot` whatever other name you gave it).
+
+
+¹ To reduce server load, the number of messages searched is limited.
 
 ## Installation
 To run ParrotBot on your machine, you need Python 3.5 or higher and
