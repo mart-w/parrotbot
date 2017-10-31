@@ -157,7 +157,7 @@ class ParrotBot(discord.Client):
         else:
             return False
 
-    async def search_message_by_quote(self, quote):
+    async def search_message_by_quote(self, quote, partial=False):
         """
         Finds a quote in a given channel and returns the found Message.
 
@@ -173,25 +173,30 @@ class ParrotBot(discord.Client):
         quote : discord.Message
             Message object containing a quote from another Message from the
             same channel.
+        partial : boolean
+            [Optional] Whether the quote being dealt with is a partial one.
 
         Returns
         -------
         discord.Message or None
         """
-        match = self.re_quote.fullmatch(quote.content).groupdict()
+        if partial:
+            match = self.re_partial_quote.fullmatch(quote.content).groupdict()
+        else:
+            match = self.re_quote.fullmatch(quote.content).groupdict()
 
-        async for message in self.logs_from( \
-            quote.channel, \
-            limit=self.log_fetch_limit, \
-            before=quote \
+        async for message in self.logs_from(
+            quote.channel,
+            limit=self.log_fetch_limit,
+            before=quote
         ):
             if not match["author"] \
             or await self.is_same_user(message.author, match["author"]):
-                if message.id.find(match["content"]) == 0 \
-                or re.search( \
-                    re.escape(match["content"]), \
-                    message.content, \
-                    flags=re.IGNORECASE \
+                if message.id.find(match["content"]) == 0 and not partial \
+                or re.search(
+                    re.escape(match["content"]),
+                    message.content,
+                    flags=re.IGNORECASE
                 ):
                     return message
 
@@ -276,7 +281,7 @@ class ParrotBot(discord.Client):
 
         return timedelta_string
 
-    async def create_quote_embed(self, quoting_user, quote):
+    async def create_quote_embed(self, quoting_user, quote, alt=None):
         """
         Create a discord.Embed object that can then be posted to a channel.
 
@@ -287,7 +292,7 @@ class ParrotBot(discord.Client):
         Create a new discord.Embed object and map:
             1. the display name of the author of the quote to Embed.author.name
             2. their avatar to Embed.author.icon_url
-            3. the quote's content to Embed.description
+            3. the quote's content (or alt, if given) to Embed.description
             4. the label generated earlier to Embed.footer.text
             5. the avatar of the quoting user to Embed.footer.icon_url
             6. the timestamp of the quoted message to Embed.timestamp.
@@ -299,13 +304,15 @@ class ParrotBot(discord.Client):
             The user originally quoting the other message.
         quote : discord.Message
             The quoted message.
+        alt : str
+            [Optional] An alternate message text for the embed box.
 
         Returns
         -------
         discord.Embed
         """
 
-        quote_embed = discord.Embed(description=quote.content)
+        quote_embed = discord.Embed(description=alt or quote.content)
         quote_embed.set_author(
             name=quote.author.display_name,
             icon_url=quote.author.avatar_url
@@ -328,7 +335,7 @@ class ParrotBot(discord.Client):
 
         return quote_embed
 
-    async def quote_message(self, quote):
+    async def quote_message(self, quote, partial=False):
         """
         Try to find the quoted message and post an according embed message.
 
@@ -343,8 +350,11 @@ class ParrotBot(discord.Client):
         ----------
         quote : discord.Message
             Message that could contain a quote from another message.
+        partial : boolean
+            [Optional] Whether a partial quote is requested. In this case, only
+            show the part given by the user in the embed box.
         """
-        quoted_message = await self.search_message_by_quote(quote)
+        quoted_message = await self.search_message_by_quote(quote, partial)
 
         # Find own member object on the server.
         bot_member = quote.server.get_member(self.user.id)
@@ -353,10 +363,27 @@ class ParrotBot(discord.Client):
         bot_may_send = quote.channel.permissions_for(bot_member).send_messages
 
         if quoted_message and bot_may_send:
-            quote_embed = await self.create_quote_embed(
-                quote.author,
-                quoted_message
-            )
+            if partial:
+                quote_request_match = self.re_partial_quote.fullmatch(
+                    quote.content
+                )
+
+                matched_quote = re.search(
+                    quote_request_match.group("content"),
+                    quoted_message.content,
+                    flags=re.IGNORECASE
+                )
+
+                quote_embed = await self.create_quote_embed(
+                    quote.author,
+                    quoted_message,
+                    matched_quote.group(0)
+                )
+            else:
+                quote_embed = await self.create_quote_embed(
+                    quote.author,
+                    quoted_message
+                )
 
             await self.send_message(quote.channel, embed=quote_embed)
 
@@ -437,8 +464,13 @@ class ParrotBot(discord.Client):
         file. Finally set the bot's presence (game status) if one is specified
         in the config file.
         """
-        # Regular expression object used to recognise quotes.
-        self.re_quote = re.compile(r"(?P<author>.*)\s*>\s*(?P<content>.+)")
+        # Regular expression objects used to recognise quotes.
+        self.re_quote = re.compile(
+            r"(?P<author>.*)\s*>\s*(?P<content>.+)"
+        )
+        self.re_partial_quote = re.compile(
+            r"(?P<author>.*)\s*>>\s*(?P<content>.+)"
+        )
 
         # Regular expression object for user mention strings.
         self.re_user_mention = re.compile(r"<@!(?P<ID>.*?)>")
@@ -482,8 +514,8 @@ class ParrotBot(discord.Client):
 
         If the message matches the regular expression for commands, execute
         the command. If not, check whether the message matches the regular
-        expression for quotes and quote the message if that is the case.
-        Messages from bots are ignored.
+        expression for quotes or partial quote and quote the message if that is
+        the case. Messages from bots are ignored.
 
         Parameters
         ----------
@@ -493,6 +525,8 @@ class ParrotBot(discord.Client):
         if not message.author.bot:
             if self.re_command.fullmatch(message.content):
                 await self.handle_command(message)
+            elif self.re_partial_quote.fullmatch(message.content):
+                await self.quote_message(message, True)
             elif self.re_quote.fullmatch(message.content):
                 await self.quote_message(message)
 
