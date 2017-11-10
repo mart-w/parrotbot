@@ -51,6 +51,9 @@ class ParrotBot(discord.Client):
         # How many messages are fetched at most by search_message_by_quote().
         self.log_fetch_limit = 100
 
+        # Will be set to True after initialisation.
+        self.initialised = False
+
     async def post_server_count(self):
         """
         Post how many servers are connected to Discord bot list sites.
@@ -498,6 +501,8 @@ class ParrotBot(discord.Client):
             presence.name = self.config["presence"]
             await self.change_presence(game=presence)
 
+        self.initialised = True
+
     async def on_server_join(self, server):
         """Print number of connected servers when connecting to a new server."""
         print("Joined Server %s -- %s." % (server.id, server.name))
@@ -514,17 +519,17 @@ class ParrotBot(discord.Client):
         """
         Check if the bot should respond to the message and act accordingly.
 
-        If the message matches the regular expression for commands, execute
-        the command. If not, check whether the message matches the regular
-        expression for quotes or partial quote and quote the message if that is
-        the case. Messages from bots are ignored.
+        If the bot is initialised and the message matches the regular expression
+        for commands, execute the command. If not, check whether the message
+        matches the regular expression for quotes or partial quote and quote the
+        message if that is the case. Messages from bots are ignored.
 
         Parameters
         ----------
         message : discord.message
             The message the bot received.
         """
-        if not message.author.bot:
+        if self.initialised and not message.author.bot:
             if self.re_command.fullmatch(message.content):
                 await self.handle_command(message)
             elif self.re_partial_quote.fullmatch(message.content):
