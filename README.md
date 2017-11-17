@@ -1,4 +1,6 @@
 # ParrotBot
+[![Discord Bots](https://discordbots.org/api/widget/status/363007359204982786.png)](https://discordbots.org/bot/363007359204982786?utm_source=widget)
+
 ParrotBot is a simple Discord bot solving a simple Discord problem: That it
 doesn’t support quotation.
 
@@ -27,6 +29,8 @@ greater-signs (`>>`).
 
 Also see the help and info commands: Just type `@ParrotBot info` or
 `@ParrotBot help` (replace `@ParrotBot` whatever other name you gave it).
+You can also visit [ParrotBot’s support Discord](https://discord.gg/rMXH2Rg)
+if you need any help.
 
 
 ¹ To reduce server load, the number of messages searched is limited.
