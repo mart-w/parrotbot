@@ -409,7 +409,9 @@ class ParrotBot(discord.Client):
             "```sample_user > sample message```\nIf you want me to not display "
             "the full message but only the part you gave me, type two "
             "greater-signs instead of one:\n```>> sample```\nFor more "
-            "information on me, type “<@%s> info”." % (self.user.id)
+            "information on me, type “<@%s> info”. Also, if you still have "
+             "questions, feel free to join my support Discord: "
+             "https://discord.gg/rMXH2Rg" % (self.user.id)
         )
 
     async def send_info_message(self, channel):
@@ -417,8 +419,8 @@ class ParrotBot(discord.Client):
         await self.send_message(
             channel,
             content="Hi, my name is ParrotBot and I’m here to assist you with "
-            "quoting other users’ messages – a function Discord still lacks by "
-            "default. If you’d like to know how to do that, just type "
+            "quoting other users’ messages – a functionality Discord still "
+            "lacks by default. If you’d like to know how to do that, just type "
             "“<@%s> help”. Also, feel free to take a look at my source code on "
             "https://github.com/mart-w/parrotbot/ if you’re interested in the "
             "nitty gritty details.\n\nPlease note that I am free software: you "
