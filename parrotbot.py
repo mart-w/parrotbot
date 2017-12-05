@@ -478,11 +478,11 @@ class ParrotBot(discord.Client):
         )
 
         # Regular expression object for user mention strings.
-        self.re_user_mention = re.compile(r"<@!(?P<ID>.*?)>")
+        self.re_user_mention = re.compile(r"<@!?(?P<ID>.*?)>")
 
         # Must be initialised here because it depends on self.user.id.
         self.re_command = re.compile(
-            r"\s*<@" + self.user.id + r">\s*(?P<command>.*?)\s*"
+            r"\s*<@!?" + self.user.id + r">\s*(?P<command>.*?)\s*"
         )
 
         print("ParrotBot is ready.")
