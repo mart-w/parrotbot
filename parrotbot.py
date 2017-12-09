@@ -653,9 +653,11 @@ while True:
         # Start bot session.
         print("Start bot session with token %s" % (config["discord-token"]))
         client.run(config["discord-token"])
-    except ConnectionResetError:
+    except Exception as exception:
+        print(type(exception))
+        print(exception)
         print("\n--------------------------------------------")
-        print("Lost Connection. Retrying in 5 seconds ...")
+        print("An error occured. Retrying in 5 seconds ...")
         print("--------------------------------------------\n")
 
         sleep(5)
