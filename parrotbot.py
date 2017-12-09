@@ -18,6 +18,7 @@
 
 import discord
 import asyncio
+import time
 import datetime
 import json
 import re
@@ -645,11 +646,11 @@ if configfile_needs_update:
         json.dump(config, configfile, indent=2)
         print("Configuration file updated.")
 
-# Initialise client object with the loaded configuration.
-client = ParrotBot(config)
 
 while True:
     try:
+        # Initialise client object with the loaded configuration.
+        client = ParrotBot(config)
         # Start bot session.
         print("Start bot session with token %s" % (config["discord-token"]))
         client.run(config["discord-token"])
@@ -660,4 +661,4 @@ while True:
         print("An error occured. Retrying in 5 seconds ...")
         print("--------------------------------------------\n")
 
-        sleep(5)
+        time.sleep(5)
