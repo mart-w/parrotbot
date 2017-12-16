@@ -532,7 +532,9 @@ class ParrotBot(discord.Client):
         message : discord.message
             The message the bot received.
         """
-        if self.initialised and not message.author.bot:
+        if self.initialised \
+        and not message.author.bot \
+        and message.channel.permissions_for(message.server.me).send_messages:
             if self.re_command.fullmatch(message.content):
                 await self.handle_command(message)
             elif self.re_partial_quote.fullmatch(message.content):
