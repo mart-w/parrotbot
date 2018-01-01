@@ -18,6 +18,7 @@
 
 import discord
 import asyncio
+import time
 import datetime
 import json
 import re
@@ -531,7 +532,9 @@ class ParrotBot(discord.Client):
         message : discord.message
             The message the bot received.
         """
-        if self.initialised and not message.author.bot:
+        if self.initialised \
+        and not message.author.bot \
+        and message.channel.permissions_for(message.server.me).send_messages:
             if self.re_command.fullmatch(message.content):
                 await self.handle_command(message)
             elif self.re_partial_quote.fullmatch(message.content):
@@ -645,17 +648,19 @@ if configfile_needs_update:
         json.dump(config, configfile, indent=2)
         print("Configuration file updated.")
 
-# Initialise client object with the loaded configuration.
-client = ParrotBot(config)
 
 while True:
     try:
+        # Initialise client object with the loaded configuration.
+        client = ParrotBot(config)
         # Start bot session.
         print("Start bot session with token %s" % (config["discord-token"]))
         client.run(config["discord-token"])
-    except ConnectionResetError:
+    except Exception as exception:
+        print(type(exception))
+        print(exception)
         print("\n--------------------------------------------")
-        print("Lost Connection. Retrying in 5 seconds ...")
+        print("An error occured. Retrying in 5 seconds ...")
         print("--------------------------------------------\n")
 
-        sleep(5)
+        time.sleep(5)
