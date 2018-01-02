@@ -1,8 +1,10 @@
 # ParrotBot
-[![Discord Bots](https://discordbots.org/api/widget/status/363007359204982786.png)](https://discordbots.org/bot/363007359204982786?utm_source=widget)
+[![Discord Bots](https://discordbots.org/api/widget/status/363007359204982786.svg?noavatar=true)](https://discordbots.org/bot/parrotbot)
 
 ParrotBot is a simple Discord bot solving a simple Discord problem: That it
 doesn’t support quotation.
+
+[![Discord Bots](https://discordbots.org/api/widget/363007359204982786.svg)](https://discordbots.org/bot/parrotbot)
 
 ## Usage
 With ParrotBot, you can easily quote other messages, as long as they are in the
@@ -36,7 +38,12 @@ if you need any help.
 ¹ To reduce server load, the number of messages searched is limited.
 
 ## Installation
-To run ParrotBot on your machine, you need Python 3.5 or higher and
+You don’t have to host ParrotBot yourself. There is a public instance of it
+being hosted for you – just click [here](https://discordbots.org/bot/parrotbot)
+and select “Invite”. You can also find the bot on
+[bots.discord.pw](https://bots.discord.pw/bots/363007359204982786).
+
+To run ParrotBot on your own machine, you need Python 3.5 or higher and
 [discord.py](https://github.com/Rapptz/discord.py) v0.15.0 or higher.
 ParrotBot also uses the modules `asyncio`, `datetime`, `json`, `re`, and
 `urllib2`, but those should normally already be part of your Python
@@ -46,7 +53,7 @@ installation. You also need a Discord bot user and its API token
 If you have all that, just clone this repository. Then you’re ready to go!
 Insert your bot’s client ID into this URL:
 
-    https://discordapp.com/oauth2/authorize?client_id=YOUR_ID_HERE&scope=bot
+    https://discordapp.com/oauth2/authorize?client_id=YOUR_ID_HERE&scope=bot&permissions=8192
 
 Open it, choose the server you want to add your bot to and click on “Authorize”.
 Then the only thing left to do is to fire up `parrotbot.py` and quote away!
@@ -65,7 +72,7 @@ Whatever you do: Please stay polite and friendly. We’re all doing this for fun
 :wink:
 
 ## License notice
-Copyright (C) 2017  Martin W.
+Copyright (C) 2018  Martin W.
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
