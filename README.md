@@ -1,5 +1,5 @@
 # ParrotBot
-[![Discord Bots](https://discordbots.org/api/widget/status/363007359204982786.png)](https://discordbots.org/bot/363007359204982786?utm_source=widget)
+[![Discord Bots](https://discordbots.org/api/widget/status/363007359204982786.png)](https://discordbots.org/bot/parrotbot)
 
 ParrotBot is a simple Discord bot solving a simple Discord problem: That it
 doesn’t support quotation.
@@ -36,7 +36,14 @@ if you need any help.
 ¹ To reduce server load, the number of messages searched is limited.
 
 ## Installation
-To run ParrotBot on your machine, you need Python 3.5 or higher and
+You don’t have to host ParrotBot yourself. There is a public instance of it
+being hosted for you – just click [here](https://discordbots.org/bot/parrotbot)
+or on the widget below and select “Invite.” You can also find the bot on
+[bots.discord.pw](https://bots.discord.pw/bots/363007359204982786).
+
+[![Discord Bots](https://discordbots.org/api/widget/363007359204982786.svg)](https://discordbots.org/bot/parrotbot)
+
+To run ParrotBot on your own machine, you need Python 3.5 or higher and
 [discord.py](https://github.com/Rapptz/discord.py) v0.15.0 or higher.
 ParrotBot also uses the modules `asyncio`, `datetime`, `json`, `re`, and
 `urllib2`, but those should normally already be part of your Python
