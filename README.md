@@ -46,7 +46,7 @@ installation. You also need a Discord bot user and its API token
 If you have all that, just clone this repository. Then you’re ready to go!
 Insert your bot’s client ID into this URL:
 
-    https://discordapp.com/oauth2/authorize?client_id=YOUR_ID_HERE&scope=bot
+    https://discordapp.com/oauth2/authorize?client_id=YOUR_ID_HERE&scope=bot&permissions=8192
 
 Open it, choose the server you want to add your bot to and click on “Authorize”.
 Then the only thing left to do is to fire up `parrotbot.py` and quote away!
