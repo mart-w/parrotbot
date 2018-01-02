@@ -72,7 +72,7 @@ Whatever you do: Please stay polite and friendly. We’re all doing this for fun
 :wink:
 
 ## License notice
-Copyright (C) 2017  Martin W.
+Copyright (C) 2018  Martin W.
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
