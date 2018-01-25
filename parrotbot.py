@@ -196,12 +196,14 @@ class ParrotBot(discord.Client):
         ):
             if not match["author"] \
             or await self.is_same_user(message.author, match["author"]):
-                if message.id.find(match["content"]) == 0 and not partial \
+                if not message.author.bot \
+                and not message.content.startswith(">") \
+                and (message.id.find(match["content"]) == 0 and not partial \
                 or re.search(
                     re.escape(match["content"]),
                     message.content,
                     flags=re.IGNORECASE
-                ):
+                )):
                     return message
 
         return None
@@ -474,10 +476,10 @@ class ParrotBot(discord.Client):
         """
         # Regular expression objects used to recognise quotes.
         self.re_quote = re.compile(
-            r"(?P<author>.*)\s*>\s*(?P<content>.+)"
+            r"\s*(?P<author>(?:<.*?>)|(?:.*?))\s*>\s*(?P<content>.+)"
         )
         self.re_partial_quote = re.compile(
-            r"(?P<author>.*)\s*>>\s*(?P<content>.+)"
+            r"\s*(?P<author>(?:<.*?>)|(?:.*?))\s*>>\s*(?P<content>.+)"
         )
 
         # Regular expression object for user mention strings.
