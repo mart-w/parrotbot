@@ -196,12 +196,14 @@ class ParrotBot(discord.Client):
         ):
             if not match["author"] \
             or await self.is_same_user(message.author, match["author"]):
-                if message.id.find(match["content"]) == 0 and not partial \
+                if not message.author.bot \
+                and not message.content.startswith(">") \
+                and (message.id.find(match["content"]) == 0 and not partial \
                 or re.search(
                     re.escape(match["content"]),
                     message.content,
                     flags=re.IGNORECASE
-                ):
+                )):
                     return message
 
         return None
@@ -366,7 +368,7 @@ class ParrotBot(discord.Client):
         # Check if the bot is allowed to send messages in that channel.
         bot_may_send = quote.channel.permissions_for(bot_member).send_messages
 
-        if quoted_message and bot_may_send and not quoted_message.author.bot:
+        if quoted_message and bot_may_send:
             if partial:
                 quote_request_match = self.re_partial_quote.fullmatch(
                     quote.content
