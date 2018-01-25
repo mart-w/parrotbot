@@ -474,10 +474,10 @@ class ParrotBot(discord.Client):
         """
         # Regular expression objects used to recognise quotes.
         self.re_quote = re.compile(
-            r"(?P<author>.*)\s*>\s*(?P<content>.+)"
+            r"\s*(?P<author>(?:<.*?>)|(?:.*?))\s*>\s*(?P<content>.+)"
         )
         self.re_partial_quote = re.compile(
-            r"(?P<author>.*)\s*>>\s*(?P<content>.+)"
+            r"\s*(?P<author>(?:<.*?>)|(?:.*?))\s*>>\s*(?P<content>.+)"
         )
 
         # Regular expression object for user mention strings.
