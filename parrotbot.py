@@ -366,7 +366,7 @@ class ParrotBot(discord.Client):
         # Check if the bot is allowed to send messages in that channel.
         bot_may_send = quote.channel.permissions_for(bot_member).send_messages
 
-        if quoted_message and bot_may_send:
+        if quoted_message and bot_may_send and not quoted_message.author.bot:
             if partial:
                 quote_request_match = self.re_partial_quote.fullmatch(
                     quote.content
