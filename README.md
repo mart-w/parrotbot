@@ -6,7 +6,7 @@ doesn’t support quotation.
 
 [![Discord Bots](https://discordbots.org/api/widget/363007359204982786.svg)](https://discordbots.org/bot/parrotbot)
 
-## Usage
+## Usage.
 With ParrotBot, you can easily quote other messages, as long as they are in the
 same channel and weren’t posted too long ago.¹ Just send a message containing
 a greater-sign (>), followed by an excerpt from the message you want to quote –
@@ -37,7 +37,7 @@ if you need any help.
 
 ¹ To reduce server load, the number of messages searched is limited.
 
-## Installation
+## Installation.
 You don’t have to host ParrotBot yourself. There is a public instance of it
 being hosted for you – just click [here](https://discordbots.org/bot/parrotbot)
 and select “Invite”. You can also find the bot on
@@ -58,9 +58,9 @@ Insert your bot’s client ID into this URL:
 Open it, choose the server you want to add your bot to and click on “Authorize”.
 Then the only thing left to do is to fire up `parrotbot.py` and quote away!
 
-## Contribution
+## How to contribute.
 If you find a bug or want to suggest a new feature, feel free to create a new
-issue here on GitHub, I will look into it.
+issue on GitHub: https://github.com/mart-w/parrotbot
 
 If you feel like contributing to the codebase itself, that is also appreciated!
 Just fork the project, make your changes and file a pull request that describes
@@ -71,8 +71,8 @@ as described in
 Whatever you do: Please stay polite and friendly. We’re all doing this for fun.
 :wink:
 
-## License notice
-Copyright (C) 2018  Martin W.
+## License notice.
+Copyright (C) 2018  Martin Wurm
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -80,6 +80,6 @@ the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+but **without any warranty**; without even the implied warranty of
+**merchantability** or **fitness for a particular purpose**.  See the
 `LICENSE` file or http://www.gnu.org/licenses/ for details.
