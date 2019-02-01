@@ -287,7 +287,7 @@ class ParrotBot(discord.Client):
 
         return timedelta_string
 
-    async def create_quote_embed(self, quoting_user, quote, alt=None):
+    async def create_quote_embed(self, quoting_user, quote, link, alt=None):
         """
         Create a discord.Embed object that can then be posted to a channel.
 
@@ -318,7 +318,10 @@ class ParrotBot(discord.Client):
         discord.Embed
         """
 
-        quote_embed = discord.Embed(description=alt or quote.content)
+        link_md = "[↑](" + link + ")"
+        content = quote.content + "\n" + link_md
+
+        quote_embed = discord.Embed(description=alt or content)
         quote_embed.set_author(
             name=quote.author.display_name,
             icon_url=quote.author.avatar_url
@@ -369,6 +372,12 @@ class ParrotBot(discord.Client):
         bot_may_send = quote.channel.permissions_for(bot_member).send_messages
 
         if quoted_message and bot_may_send:
+
+			# Fetch link
+            channel = quoted_message.channel
+            server = channel.server
+            link = "https://discordapp.com/channels/" + server.id + "/" + channel.id + "/" + quoted_message.id
+
             if partial:
                 quote_request_match = self.re_partial_quote.fullmatch(
                     quote.content
@@ -383,12 +392,14 @@ class ParrotBot(discord.Client):
                 quote_embed = await self.create_quote_embed(
                     quote.author,
                     quoted_message,
+                    link,
                     matched_quote.group(0)
                 )
             else:
                 quote_embed = await self.create_quote_embed(
                     quote.author,
-                    quoted_message
+                    quoted_message,
+                    link
                 )
 
             await self.send_message(quote.channel, embed=quote_embed)
