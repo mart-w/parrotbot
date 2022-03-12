@@ -1,6 +1,9 @@
 # ParrotBot
-ParrotBot is a simple Discord bot solving a simple Discord problem: That it
-doesn’t support quotation.
+
+**Please note: As Discord has had a native quotation feature for a long time now and this here implementation is no longer compatible with current versions of Python and its Discord library, this project is no longer being developed. Thank you to anyone who used or contributed to ParrotBot!**
+
+ParrotBot was a simple Discord bot solving a simple Discord problem: That it
+didn’t support quotation.
 
 ## Usage
 With ParrotBot, you can easily quote other messages, as long as they are in the
