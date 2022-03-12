@@ -1,10 +1,6 @@
 # ParrotBot
-[![Discord Bots](https://discordbots.org/api/widget/status/363007359204982786.svg?noavatar=true)](https://discordbots.org/bot/parrotbot)
-
 ParrotBot is a simple Discord bot solving a simple Discord problem: That it
 doesn’t support quotation.
-
-[![Discord Bots](https://discordbots.org/api/widget/363007359204982786.svg)](https://discordbots.org/bot/parrotbot)
 
 ## Usage
 With ParrotBot, you can easily quote other messages, as long as they are in the
